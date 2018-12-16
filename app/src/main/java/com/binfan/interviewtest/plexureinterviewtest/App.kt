@@ -2,6 +2,7 @@ package com.binfan.interviewtest.plexureinterviewtest
 
 import android.app.Application
 import com.binfan.interviewtest.plexureinterviewtest.persistence.User
+import com.binfan.interviewtest.plexureinterviewtest.persistence.UserDao
 import com.binfan.interviewtest.plexureinterviewtest.persistence.UsersDatabase
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -16,9 +17,13 @@ class App : Application() {
         val DEFAULT_NAME_ARRAY = arrayOf("James", "Emily", "Ben", "Alex", "Peter")
     }
 
+    lateinit var userDao: UserDao
+
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        userDao = UsersDatabase.getInstance(App.instance).userDao()
 
         checkAndInitialDemoData()
     }

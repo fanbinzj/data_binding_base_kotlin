@@ -9,8 +9,8 @@ import com.binfan.interviewtest.plexureinterviewtest.base.BaseViewModel
 import com.binfan.interviewtest.plexureinterviewtest.network.apicalls.MainScreenPostCall
 import com.binfan.interviewtest.plexureinterviewtest.network.data.response.MainScreenResponseData
 import com.binfan.interviewtest.plexureinterviewtest.persistence.User
-import com.binfan.interviewtest.plexureinterviewtest.persistence.UsersDatabase
 import com.binfan.interviewtest.plexureinterviewtest.BR
+import io.reactivex.Single
 
 class MainScreenViewModel: BaseViewModel() {
 
@@ -25,6 +25,8 @@ class MainScreenViewModel: BaseViewModel() {
             notifyPropertyChanged(BR.messageForShowing)
         }
 
+    var allDbUsers: List<User> = ArrayList<User>()
+
     fun onFirstButtonClick() {
         messageForShowing = "loading..."
         MainScreenPostCall("Test data")
@@ -37,8 +39,10 @@ class MainScreenViewModel: BaseViewModel() {
 
     fun onSecondButtonClick() {
         messageForShowing = "loading..."
-        val userDao = UsersDatabase.getInstance(App.instance).userDao()
-        userDao.getAllUsers()
+        var memorySingle: Single<List<User>>  = Single.just(allDbUsers)
+        Single.concat(memorySingle, App.instance.userDao.getAllUsers())
+                .filter { data -> data.size > 0 }
+                .firstElement()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -54,6 +58,7 @@ class MainScreenViewModel: BaseViewModel() {
     }
 
     fun onDBFetchSuccess(userList: List<User>) {
+        allDbUsers = userList
         messageForShowing = "All users from DB: "
         userList.forEach {
             messageForShowing = messageForShowing + "${it.userName} "
